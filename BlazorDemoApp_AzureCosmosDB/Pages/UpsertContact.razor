@@ -1,0 +1,64 @@
+﻿@*Note, two we have defined 2 paths here - one for adding new component and one for updating existing component*@
+@*Note: here also, we are omitting partition key because in this case, it is id itself.
+If it is different, then we need to specify that as well like /upsert/{id}/{partitionkey}*@
+
+@page "/upsert"
+@page "/upsert/{id}" 
+
+@inject IContactService contactService 
+@inject NavigationManager navigationManager 
+
+<h3>Upsert Contact</h3>
+
+<EditForm Model="@contact">
+    <div class="form-group row p-2">
+        <input type="hidden" @bind-value="contact.id" />
+        <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="Name" @bind-value="contact.Name" />
+        </div>       
+    </div>
+    <div class="form-group row p-2">
+    <div class="col-md-6">
+        <input type="text" class="form-control" placeholder="Country" @bind-value="contact.Country" />
+    </div>
+    </div>
+    <div class="form-group row p-2">
+        <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="Email" @bind-value="contact.Email" />
+        </div>
+    </div>
+    <div class="form-group row p-2">
+        <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="Phone" @bind-value="contact.Phone" />
+        </div>
+    </div>
+    <div class="form-group row p-2">
+        <div class="text-center">
+            <button class="btn btn-primary" @onclick="@(async () => await SaveContact())">Save</button>
+        </div>
+    </div>
+</EditForm>
+
+
+
+@code {
+    Contact contact = new();
+
+    [Parameter]
+    public string? id { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(id))
+        {
+            contact = await contactService.GetContactDetailsById(id, id);
+        }
+    }
+
+    private async Task SaveContact()
+    {
+        await contactService.UpsertContact(contact);
+        navigationManager.NavigateTo("/");
+    }
+
+}

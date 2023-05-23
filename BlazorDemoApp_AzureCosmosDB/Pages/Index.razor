@@ -1,0 +1,62 @@
+﻿@page "/"
+
+@*Injecting contact service*@
+@inject IContactService contactService 
+
+@if(contacts == null)
+{
+    <div class="progress">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+    </div>
+}
+else
+{
+    <a href=@($"upsert") class="btn btn-primary"><span class="oi oi-plus" /> Create Contact </a>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="thead-light">
+                <tr>
+                    <th>Name </th>
+                    <th>Country </th>
+                    <th>Email </th>
+                    <th>Phone </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var contact in contacts)
+                {
+                    <tr>
+                        <td>@contact.Name</td>
+                        <td>@contact.Country</td>
+                        <td>@contact.Email</td>
+                        <td>@contact.Phone</td>
+                        <td>
+                            @*Note: here we are passing only one id instead of Edit/{contact.id}/{contact.id} (id and partition key) because both are same.
+                                If we were using different partition key , then we need to provide that as well like : Edit/{id}/{partition key}*@
+                            <a href=@($"upsert/{contact.id}") class="btn btn-primary"><span class="oi oi-pencil" /> </a>
+                            <button class="btn btn-danger" @onclick="async () => await DeleteContact(contact.id)"><span class="oi oi-trash" /></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code{
+    List<Contact> contacts = new();
+
+    protected async override Task OnInitializedAsync()
+    {
+        contacts = await contactService.GetContactDetails();
+    }
+
+    private async Task DeleteContact(Guid? id)
+    {
+        await contactService.DeleteContact(id.ToString(), id.ToString());
+        contacts = await contactService.GetContactDetails();
+    }
+}
+
+
